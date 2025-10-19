@@ -1,5 +1,5 @@
 // Basic offline-first SW for a wrapper app
-const CACHE = 'go-travel-pwa-v1';
+const CACHE = 'go-travel-pwa-v2';
 const CORE = [
   '/', '/index.html', '/manifest.json',
   '/styles.css', '/config.js',
