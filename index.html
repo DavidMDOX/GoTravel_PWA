@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Go Travel · PWA</title>
+
+  <!-- PWA basics -->
+  <meta name="theme-color" content="#0ea5e9">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Go Travel">
+  <link rel="apple-touch-icon" href="/icons/icon-180.png">
+  <link rel="manifest" href="/manifest.json">
+
+  <link rel="stylesheet" href="/styles.css">
+  <script defer src="/config.js"></script>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">
+      <span class="logo"></span>
+      <span class="name">Go Travel</span>
+      <span class="badge">PWA</span>
+    </div>
+    <div class="actions">
+      <button id="installBtn" style="display:none">安装到主屏幕</button>
+      <a href="/billing.html">升级/付费</a>
+    </div>
+  </div>
+  <div class="wrapper">
+    <div class="iframe-wrap" id="appWrap">
+      <iframe id="hfFrame" class="iframe" title="Hugging Face App (iframe)"></iframe>
+      <div class="notice" id="installHint" style="display:none;">可安装到主屏幕 <span class="install-tip">点击右上角“分享”→“添加到主屏幕”</span></div>
+    </div>
+  </div>
+
+  <script>
+    // Load the HF app
+    const url = window.HF_SPACE_URL || "";
+    const frame = document.getElementById("hfFrame");
+    if(url && /^https?:\/\//.test(url)) frame.src = url;
+    else {
+      document.getElementById("appWrap").innerHTML = '<div class="offline"><h2>请先配置 config.js 中的 HF_SPACE_URL</h2><p>例如：https://your-app.hf.space</p></div>';
+    }
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js');
+      });
+    }
+
+    // Show install button on Android/desktop when allowed
+    let deferredPrompt;
+    const btn = document.getElementById('installBtn');
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      btn.style.display = 'inline-block';
+    });
+    btn.addEventListener('click', async () => {
+      btn.style.display = 'none';
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      }
+    });
+
+    // iOS hint (no beforeinstallprompt); show soft hint
+    const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (isIOS && !isStandalone) {
+      document.getElementById('installHint').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
