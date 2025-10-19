@@ -2,73 +2,34 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Go Travel · 终极诊断 v4</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Go Travel · 启动</title>
+  <meta name="theme-color" content="#0ea5e9" />
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-180.png">
   <style>
-    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;margin:0;padding:24px;background:#f8fafc}
-    .box{max-width:900px;margin:0 auto}
-    .card{background:#fff;border:1px solid #d1d5db;border-radius:12px;padding:16px;margin-bottom:16px}
-    .ok{color:#16a34a}.warn{color:#b45309}.err{color:#b91c1c}.muted{color:#64748b}
-    iframe{width:100%;height:70vh;border:0;border-radius:12px;background:#fff}
-    code{background:#f1f5f9;padding:2px 6px;border-radius:6px}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;background:#f8fafc;color:#0f172a}
+    .wrap{max-width:680px;margin:12vh auto;padding:0 16px;text-align:center}
+    .card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:28px}
+    h1{margin:0 0 10px;font-size:28px}
+    p{margin:0 0 18px;color:#475569}
+    a.btn{display:inline-block;padding:12px 18px;border-radius:12px;background:#0ea5e9;color:#fff;text-decoration:none;font-weight:600}
+    .muted{margin-top:12px;font-size:12px;color:#64748b}
   </style>
-  <!-- 关键：直接硬编码你的运行页 URL，完全绕过 config.js -->
   <script>
-    window.HF_SPACE_URL = "https://davidmdox-gotravel-uipro.hf.space";
-    window.__BUILD_TAG__ = "diag-v4-" + Date.now();
+    // 写死你的运行页，避免任何缓存/加载顺序问题
+    const RUN_URL = "https://davidmdox-gotravel-uipro.hf.space";
+    function openApp(){ window.location.href = RUN_URL; }
   </script>
 </head>
 <body>
-  <div class="box">
-    <h1>终极诊断 v4 <span class="muted" id="tag"></span></h1>
-
-    <div class="card" id="status">初始化中…</div>
+  <div class="wrap">
     <div class="card">
-      <iframe id="app" title="HF App"></iframe>
+      <h1>Go Travel</h1>
+      <p>点击下方按钮打开应用（hf.space 运行页）。</p>
+      <a class="btn" href="https://davidmdox-gotravel-uipro.hf.space">打开应用</a>
+      <div class="muted">已知：hf.space 可能禁止被其他域名 iframe。这里使用跳转以保证兼容性。</div>
     </div>
   </div>
-
-  <script>
-    (async () => {
-      const S = document.getElementById('status');
-      document.getElementById('tag').textContent = window.__BUILD_TAG__;
-
-      // 显示当前解析到的 URL
-      S.innerHTML = `
-        <div>HF_SPACE_URL = <code>${String(window.HF_SPACE_URL)}</code></div>
-        <div class="muted">现在使用“单文件写死 URL”方式，不依赖 config.js。</div>
-      `;
-
-      // 检查是否仍有旧 Service Worker
-      if ('serviceWorker' in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        if (regs.length) {
-          S.insertAdjacentHTML('beforeend', '<div class="warn">检测到已注册的 Service Worker，建议在 DevTools → Application → Service Workers → Unregister，然后 Ctrl/⌘+Shift+R 强刷。</div>');
-        } else {
-          S.insertAdjacentHTML('beforeend', '<div class="ok">未检测到已注册的 Service Worker。</div>');
-        }
-      }
-
-      // 基本格式校验
-      const url = window.HF_SPACE_URL;
-      if (!/^https?:\/\/.+\.hf\.space\/?$/.test(url)) {
-        S.insertAdjacentHTML('beforeend', '<div class="err">URL 不是 .hf.space 运行页格式，请核对。</div>');
-        return;
-      }
-
-      // 尝试加载 iframe
-      const frame = document.getElementById('app');
-      frame.addEventListener('load', () => {
-        S.insertAdjacentHTML('beforeend', '<div class="ok">iframe 加载完成。</div>');
-      });
-      frame.addEventListener('error', () => {
-        S.insertAdjacentHTML('beforeend', '<div class="err">iframe 加载失败：可能被目标站点禁止嵌入（X-Frame-Options / CSP）或网络问题。</div>');
-      });
-      frame.src = url;
-    })();
-  </script>
 </body>
 </html>
