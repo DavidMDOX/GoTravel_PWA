@@ -6,69 +6,69 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Go Travel · 单文件诊断版</title>
-
-  <!-- 直接在这里写死你的运行页 URL，完全绕过 config.js -->
+  <title>Go Travel · 终极诊断 v4</title>
+  <style>
+    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;margin:0;padding:24px;background:#f8fafc}
+    .box{max-width:900px;margin:0 auto}
+    .card{background:#fff;border:1px solid #d1d5db;border-radius:12px;padding:16px;margin-bottom:16px}
+    .ok{color:#16a34a}.warn{color:#b45309}.err{color:#b91c1c}.muted{color:#64748b}
+    iframe{width:100%;height:70vh;border:0;border-radius:12px;background:#fff}
+    code{background:#f1f5f9;padding:2px 6px;border-radius:6px}
+  </style>
+  <!-- 关键：直接硬编码你的运行页 URL，完全绕过 config.js -->
   <script>
     window.HF_SPACE_URL = "https://davidmdox-gotravel-uipro.hf.space";
+    window.__BUILD_TAG__ = "diag-v4-" + Date.now();
   </script>
-
-  <style>
-    *{box-sizing:border-box} html,body{margin:0;padding:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
-    .wrap{max-width:900px;margin:24px auto;padding:0 12px}
-    .card{border:1px solid #d1d5db;border-radius:12px;padding:16px;background:#fff}
-    .hint{color:#0b766e} .err{color:#b91c1c} .small{font-size:12px;color:#6b7280}
-    iframe{width:100%;height:70vh;border:0;border-radius:12px;background:#fff}
-  </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Go Travel（单文件诊断版）</h1>
-    <div class="card" id="statusBox">
-      <div id="status">正在读取 <code>HF_SPACE_URL</code> …</div>
-      <div class="small">若长时间无变化，请按 Ctrl/⌘+Shift+R 强制刷新；如果以前注册过 Service Worker，请在 DevTools → Application → Service Workers → Unregister。</div>
-    </div>
+  <div class="box">
+    <h1>终极诊断 v4 <span class="muted" id="tag"></span></h1>
 
-    <div class="card" style="margin-top:16px">
-      <iframe id="hfFrame" title="Hugging Face App"></iframe>
+    <div class="card" id="status">初始化中…</div>
+    <div class="card">
+      <iframe id="app" title="HF App"></iframe>
     </div>
   </div>
 
   <script>
-    (async function(){
-      const status = document.getElementById('status');
-      const frame  = document.getElementById('hfFrame');
+    (async () => {
+      const S = document.getElementById('status');
+      document.getElementById('tag').textContent = window.__BUILD_TAG__;
 
-      // 打印 SW 情况（便于你看是否还在用旧缓存）
+      // 显示当前解析到的 URL
+      S.innerHTML = `
+        <div>HF_SPACE_URL = <code>${String(window.HF_SPACE_URL)}</code></div>
+        <div class="muted">现在使用“单文件写死 URL”方式，不依赖 config.js。</div>
+      `;
+
+      // 检查是否仍有旧 Service Worker
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
         if (regs.length) {
-          status.insertAdjacentHTML('beforeend','<div class="hint">检测到已有 Service Worker，建议先 Unregister 后再刷新。</div>');
-          console.log('ServiceWorkers:', regs);
+          S.insertAdjacentHTML('beforeend', '<div class="warn">检测到已注册的 Service Worker，建议在 DevTools → Application → Service Workers → Unregister，然后 Ctrl/⌘+Shift+R 强刷。</div>');
+        } else {
+          S.insertAdjacentHTML('beforeend', '<div class="ok">未检测到已注册的 Service Worker。</div>');
         }
       }
 
+      // 基本格式校验
       const url = window.HF_SPACE_URL;
-      console.log('HF_SPACE_URL =', url);
-      status.innerHTML = '配置：<code>' + url + '</code>';
-
-      // 基本校验
       if (!/^https?:\/\/.+\.hf\.space\/?$/.test(url)) {
-        status.insertAdjacentHTML('beforeend', '<div class="err">不是 .hf.space 运行页格式，请核对。</div>');
+        S.insertAdjacentHTML('beforeend', '<div class="err">URL 不是 .hf.space 运行页格式，请核对。</div>');
         return;
       }
 
-      frame.addEventListener('load', ()=> {
-        status.insertAdjacentHTML('beforeend', '<div class="hint">iframe 已加载。</div>');
+      // 尝试加载 iframe
+      const frame = document.getElementById('app');
+      frame.addEventListener('load', () => {
+        S.insertAdjacentHTML('beforeend', '<div class="ok">iframe 加载完成。</div>');
       });
-      frame.addEventListener('error', ()=> {
-        status.insertAdjacentHTML('beforeend', '<div class="err">iframe 加载失败（可能被目标站点禁止嵌入，或网络问题）。</div>');
+      frame.addEventListener('error', () => {
+        S.insertAdjacentHTML('beforeend', '<div class="err">iframe 加载失败：可能被目标站点禁止嵌入（X-Frame-Options / CSP）或网络问题。</div>');
       });
-
       frame.src = url;
     })();
   </script>
-
-  <!-- 诊断期先不注册 SW，避免缓存干扰；跑通后再恢复 -->
 </body>
 </html>
