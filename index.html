@@ -8,12 +8,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Go Travel · PWA</title>
 
-  <!-- 加载 PWA 必要文件 -->
   <meta name="theme-color" content="#0ea5e9" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icons/icon-180.png" />
 
-  <!-- 样式 -->
   <style>
     body {
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto;
@@ -34,9 +32,7 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
       text-align: center;
     }
-    h1 {
-      margin-bottom: 8px;
-    }
+    h1 { margin-bottom: 8px; }
     iframe {
       width: 100%;
       height: 70vh;
@@ -55,20 +51,12 @@
       border-radius: 12px;
       text-decoration: none;
     }
-    .button:hover {
-      background: #0284c7;
-    }
-    .hint {
-      color: #0b766e;
-      margin-top: 10px;
-    }
-    .error {
-      color: #b91c1c;
-      margin-top: 10px;
-    }
+    .button:hover { background: #0284c7; }
+    .hint { color: #0b766e; margin-top: 10px; }
+    .error { color: #b91c1c; margin-top: 10px; }
   </style>
 
-  <!-- 正确加载 config.js，带时间戳防止缓存 -->
+  <!-- 正确加载 config.js，带时间戳避免缓存 -->
   <script src="/config.js?v=build123"></script>
 </head>
 
@@ -84,14 +72,12 @@
   </div>
 
   <script>
-    // 记录日志
     const logEl = document.getElementById('log');
-    function log(msg, cls = 'hint') {
+    function log(msg, cls='hint') {
       console.log(msg);
       logEl.innerHTML = `<div class="${cls}">${msg}</div>`;
     }
 
-    // 等待 HF_SPACE_URL 加载
     window.addEventListener('DOMContentLoaded', () => {
       const frame = document.getElementById('hfFrame');
       const openBtn = document.getElementById('openBtn');
@@ -104,8 +90,6 @@
       }
 
       log('✅ 已读取 HF_SPACE_URL: ' + url);
-
-      // 尝试加载 iframe
       try {
         frame.src = url;
         frame.addEventListener('load', () => log('✅ iframe 加载成功。'));
@@ -115,7 +99,6 @@
           openBtn.style.display = 'inline-block';
         });
       } catch (err) {
-        console.error(err);
         log('❌ 出现错误：' + err.message, 'error');
         openBtn.href = url;
         openBtn.style.display = 'inline-block';
@@ -123,7 +106,7 @@
     });
   </script>
 
-  <!-- 暂时禁用 Service Worker，避免缓存干扰 -->
+  <!-- 暂时禁用旧的 Service Worker 避免缓存 -->
   <!--
   <script>
     if ('serviceWorker' in navigator) {
