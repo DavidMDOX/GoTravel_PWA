@@ -5,11 +5,7 @@ async function callOpenAI({ apiKey, model, messages }) {
       "Content-Type": "application/json",
       "Authorization": "Bearer " + apiKey
     },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: 0.7
-    })
+    body: JSON.stringify({ model, messages, temperature: 0.7 })
   });
 
   if (!res.ok) {
