@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0ea5e9" />
   <title>Go Travel · 带你说走就走</title>
 
-  <!-- PWA 配置 -->
+  <!-- PWA -->
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
 
@@ -28,9 +28,20 @@
     .muted{color:var(--muted);font-size:12px}
     pre{white-space:pre-wrap;word-wrap:break-word}
     .result{min-height:140px;border:1px dashed #cbd5e1;border-radius:12px;padding:12px;background:#fff}
+
+    /* 固定的安装按钮 */
     #installBtn{position:fixed;right:16px;bottom:16px;z-index:9999;
       padding:10px 14px;border:0;border-radius:12px;
-      background:#0ea5e9;color:#fff;font-weight:700;display:none;box-shadow:0 4px 10px rgba(0,0,0,0.15);}
+      background:#0ea5e9;color:#fff;font-weight:700;display:inline-block;box-shadow:0 4px 10px rgba(0,0,0,.15);}
+
+    /* 简易引导弹窗 */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.4);z-index:10000}
+    .modal.show{display:flex}
+    .dialog{background:#fff;border-radius:14px;max-width:520px;width:90%;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+    .dialog h3{margin:0 0 8px}
+    .dialog p{margin:0 0 10px;color:#475569}
+    .dialog ul{margin:6px 0 0 18px;color:#475569}
+    .close{margin-top:10px;background:#e2e8f0;color:#0f172a;border:0;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer}
   </style>
 </head>
 <body>
@@ -95,43 +106,112 @@
     </div>
   </div>
 
-  <!-- PWA 安装按钮 -->
-  <button id="installBtn">安装 Go Travel</button>
+  <!-- 固定显示“安装”按钮（无论是否触发 beforeinstallprompt） -->
+  <button id="installBtn" title="安装到桌面">安装 Go Travel</button>
 
-  <script src="/app.js?v=2"></script>
+  <!-- 安装引导弹窗 -->
+  <div class="modal" id="guide">
+    <div class="dialog">
+      <h3>如何安装为 App</h3>
+      <div id="guideText">
+        <!-- JS 会填入分平台指引 -->
+      </div>
+      <button class="close" id="closeGuide">知道了</button>
+    </div>
+  </div>
 
-  <!-- 注册 Service Worker -->
+  <script src="/app.js?v=3"></script>
+
+  <!-- 注册 Service Worker（注意版本号已变 v3，强制更新） -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=2').catch(console.error);
+        navigator.serviceWorker.register('/sw.js?v=3').catch(console.error);
       });
     }
 
-    // 捕获 beforeinstallprompt 事件
+    // 安装流程：优先使用 beforeinstallprompt；否则显示分平台指引
     let deferredPrompt = null;
     const installBtn = document.getElementById('installBtn');
+    const guide = document.getElementById('guide');
+    const guideText = document.getElementById('guideText');
+    const closeGuide = document.getElementById('closeGuide');
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      installBtn.style.display = 'inline-block';
+      // 有资格被安装，按钮仍保持可见
     });
 
     installBtn.addEventListener('click', async () => {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log('PWA install result:', outcome);
-      installBtn.style.display = 'none';
-      deferredPrompt = null;
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('PWA install result:', outcome);
+        deferredPrompt = null;
+        return;
+      }
+      // 没有触发 beforeinstallprompt：显示指引
+      showGuide();
     });
 
-    // iOS 提示
+    closeGuide.addEventListener('click', () => guide.classList.remove('show'));
+
+    function showGuide() {
+      const ua = navigator.userAgent.toLowerCase();
+      const isIOS = /iphone|ipad|ipod/.test(ua);
+      const isAndroid = /android/.test(ua);
+      const isEdge = /edg\//.test(ua);
+      const isChrome = /chrome/.test(ua) && !isEdge;
+
+      let html = '';
+      if (isIOS) {
+        html = `
+          <p>iPhone / iPad（Safari）：</p>
+          <ul>
+            <li>点击底部的 <b>分享</b> 按钮（方框 + 向上箭头）</li>
+            <li>在弹出的菜单中选择 <b>添加到主屏幕</b></li>
+            <li>确认名称后点击 <b>添加</b></li>
+          </ul>`;
+      } else if (isAndroid) {
+        html = `
+          <p>Android（Chrome）：</p>
+          <ul>
+            <li>点击右上角 <b>⋮</b> 菜单</li>
+            <li>选择 <b>添加到主屏幕</b> 或 <b>安装应用</b></li>
+            <li>确认后系统会创建桌面图标</li>
+          </ul>`;
+      } else if (isEdge) {
+        html = `
+          <p>桌面版 Edge：</p>
+          <ul>
+            <li>点击浏览器右上角 <b>⋯</b> 菜单</li>
+            <li>选择 <b>应用</b> → <b>安装此站点为应用</b></li>
+          </ul>`;
+      } else if (isChrome) {
+        html = `
+          <p>桌面版 Chrome：</p>
+          <ul>
+            <li>点击地址栏右侧 <b>安装</b> 图标（或 <b>三点菜单</b> → <b>安装 Go Travel</b>）</li>
+            <li>没有图标也能通过本提示完成安装</li>
+          </ul>`;
+      } else {
+        html = `
+          <p>通用指引：</p>
+          <ul>
+            <li>浏览器菜单中寻找 <b>安装</b> / <b>添加到主屏幕</b></li>
+          </ul>`;
+      }
+      guideText.innerHTML = html;
+      guide.classList.add('show');
+    }
+
+    // iOS 不会触发 beforeinstallprompt → 首次进入时可直接展示引导
     const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     if (isIOS && !isStandalone) {
-      console.log('iOS Safari 用户请通过分享菜单选择“添加到主屏幕”。');
+      // 你也可以选择首次自动提示：showGuide();
+      console.log('iOS：请用分享菜单添加到主屏幕。');
     }
   </script>
 </body>
