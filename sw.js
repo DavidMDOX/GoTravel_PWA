@@ -1,4 +1,5 @@
-const CACHE = "go-travel-pwa-v1";
+// 简单缓存（版本 v3）：离线可打开首页与静态资源
+const CACHE = "go-travel-pwa-v3";
 const CORE = ["/", "/index.html", "/app.js", "/manifest.json"];
 
 self.addEventListener("install", (e) => {
