@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#0ea5e9" />
   <title>Go Travel · 带你说走就走</title>
+
+  <!-- PWA 配置 -->
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
   <style>
     :root{--brand:#0ea5e9;--ink:#0f172a;--muted:#6b7280;--bg:#f8fafc;--card:#fff}
     *{box-sizing:border-box} html,body{margin:0;padding:0}
@@ -25,6 +28,9 @@
     .muted{color:var(--muted);font-size:12px}
     pre{white-space:pre-wrap;word-wrap:break-word}
     .result{min-height:140px;border:1px dashed #cbd5e1;border-radius:12px;padding:12px;background:#fff}
+    #installBtn{position:fixed;right:16px;bottom:16px;z-index:9999;
+      padding:10px 14px;border:0;border-radius:12px;
+      background:#0ea5e9;color:#fff;font-weight:700;display:none;box-shadow:0 4px 10px rgba(0,0,0,0.15);}
   </style>
 </head>
 <body>
@@ -60,12 +66,12 @@
         <div>
           <label>OpenAI API Key（仅本地使用，不上传）</label>
           <input id="apiKey" placeholder="sk-..." />
-          <div class="muted">密钥只在你的浏览器内使用，建议用测试 Key。</div>
+          <div class="muted">密钥仅在浏览器内使用，建议使用测试 Key。</div>
         </div>
         <div>
           <label>模型（保持可选，默认 gpt-4o-mini）</label>
           <input id="model" value="gpt-4o-mini" />
-          <div class="muted">后期可改，暂保持可选。</div>
+          <div class="muted">可改为其他模型，保持灵活。</div>
         </div>
       </div>
 
@@ -89,13 +95,43 @@
     </div>
   </div>
 
-  <script src="/app.js?v=1"></script>
+  <!-- PWA 安装按钮 -->
+  <button id="installBtn">安装 Go Travel</button>
 
+  <script src="/app.js?v=2"></script>
+
+  <!-- 注册 Service Worker -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=1').catch(console.error);
+        navigator.serviceWorker.register('/sw.js?v=2').catch(console.error);
       });
+    }
+
+    // 捕获 beforeinstallprompt 事件
+    let deferredPrompt = null;
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'inline-block';
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('PWA install result:', outcome);
+      installBtn.style.display = 'none';
+      deferredPrompt = null;
+    });
+
+    // iOS 提示
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isIOS && !isStandalone) {
+      console.log('iOS Safari 用户请通过分享菜单选择“添加到主屏幕”。');
     }
   </script>
 </body>
