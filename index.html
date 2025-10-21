@@ -2,117 +2,35 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Go Travel · PWA</title>
-
+  <title>Go Travel · 内嵌版</title>
   <meta name="theme-color" content="#0ea5e9" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icons/icon-180.png" />
-
   <style>
-    body {
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto;
-      margin: 0;
-      padding: 0;
-      background: #f9fafb;
-      color: #111827;
-    }
-    .wrap {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 0 16px;
-    }
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      text-align: center;
-    }
-    h1 { margin-bottom: 8px; }
-    iframe {
-      width: 100%;
-      height: 70vh;
-      border: 0;
-      border-radius: 12px;
-      background: #fff;
-      margin-top: 12px;
-    }
-    .button {
-      display: inline-block;
-      margin-top: 16px;
-      padding: 10px 18px;
-      background: #0ea5e9;
-      color: white;
-      font-weight: 600;
-      border-radius: 12px;
-      text-decoration: none;
-    }
-    .button:hover { background: #0284c7; }
-    .hint { color: #0b766e; margin-top: 10px; }
-    .error { color: #b91c1c; margin-top: 10px; }
+    html,body{height:100%;margin:0}
+    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;background:#f8fafb;color:#0f172a}
+    .wrap{height:100%;display:flex;flex-direction:column}
+    .top{padding:12px 16px;background:#e0f2fe;border-bottom:1px solid #bae6fd;display:flex;align-items:center;justify-content:space-between}
+    .title{font-weight:800;color:#075985}
+    .main{flex:1;display:flex}
+    iframe{border:0;flex:1;background:#fff}
+    .btn{display:inline-block;padding:8px 12px;background:#0ea5e9;color:#fff;border-radius:10px;text-decoration:none;font-weight:600}
+    .hint{padding:8px 12px;color:#0b766e}
   </style>
-
-  <!-- 正确加载 config.js，带时间戳避免缓存 -->
-  <script src="/config.js?v=build123"></script>
 </head>
-
 <body>
   <div class="wrap">
-    <div class="card">
-      <h1>Go Travel</h1>
-      <p>加载你的 Hugging Face 应用中...</p>
-      <div id="log" class="hint"></div>
-      <iframe id="hfFrame" title="Go Travel App"></iframe>
-      <a id="openBtn" href="#" class="button" target="_blank" style="display:none;">直接打开应用</a>
+    <div class="top">
+      <div class="title">Go Travel（内嵌版）</div>
+      <a class="btn" href="https://davidmdox-gotravel-uipro.hf.space" target="_blank" rel="noopener">直接打开原站</a>
+    </div>
+    <div class="hint">如果内嵌失败会自动显示原站按钮。</div>
+    <div class="main">
+      <!-- 关键：指向同域的 /app 由 Vercel 代理到 hf.space 并移除拦截头 -->
+      <iframe id="app" src="/app"></iframe>
     </div>
   </div>
-
-  <script>
-    const logEl = document.getElementById('log');
-    function log(msg, cls='hint') {
-      console.log(msg);
-      logEl.innerHTML = `<div class="${cls}">${msg}</div>`;
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      const frame = document.getElementById('hfFrame');
-      const openBtn = document.getElementById('openBtn');
-      const url = window.HF_SPACE_URL;
-
-      if (!url) {
-        log('⚠️ 未检测到 HF_SPACE_URL，请检查 config.js 是否正确加载。', 'error');
-        openBtn.style.display = 'none';
-        return;
-      }
-
-      log('✅ 已读取 HF_SPACE_URL: ' + url);
-      try {
-        frame.src = url;
-        frame.addEventListener('load', () => log('✅ iframe 加载成功。'));
-        frame.addEventListener('error', () => {
-          log('❌ iframe 加载失败（可能被目标网站禁止嵌入）。', 'error');
-          openBtn.href = url;
-          openBtn.style.display = 'inline-block';
-        });
-      } catch (err) {
-        log('❌ 出现错误：' + err.message, 'error');
-        openBtn.href = url;
-        openBtn.style.display = 'inline-block';
-      }
-    });
-  </script>
-
-  <!-- 暂时禁用旧的 Service Worker 避免缓存 -->
-  <!--
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
-    }
-  </script>
-  -->
+  <!-- 建议：先不要注册 SW，确保不受缓存影响；跑通后再启用 -->
 </body>
 </html>
