@@ -3,34 +3,100 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Go Travel · 内嵌版</title>
   <meta name="theme-color" content="#0ea5e9" />
+  <title>Go Travel · 带你说走就走</title>
   <link rel="manifest" href="/manifest.json" />
-  <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <style>
-    html,body{height:100%;margin:0}
-    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;background:#f8fafb;color:#0f172a}
-    .wrap{height:100%;display:flex;flex-direction:column}
-    .top{padding:12px 16px;background:#e0f2fe;border-bottom:1px solid #bae6fd;display:flex;align-items:center;justify-content:space-between}
-    .title{font-weight:800;color:#075985}
-    .main{flex:1;display:flex}
-    iframe{border:0;flex:1;background:#fff}
-    .btn{display:inline-block;padding:8px 12px;background:#0ea5e9;color:#fff;border-radius:10px;text-decoration:none;font-weight:600}
-    .hint{padding:8px 12px;color:#0b766e}
+    :root{--brand:#0ea5e9;--ink:#0f172a;--muted:#6b7280;--bg:#f8fafc;--card:#fff}
+    *{box-sizing:border-box} html,body{margin:0;padding:0}
+    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;background:var(--bg);color:var(--ink)}
+    .wrap{max-width:960px;margin:24px auto;padding:0 16px}
+    .bar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#e0f2fe;border:1px solid #bae6fd;border-radius:14px}
+    .brand{font-weight:800;color:#075985}
+    .card{background:var(--card);border:1px solid #e2e8f0;border-radius:16px;padding:16px;margin-top:16px;box-shadow:0 6px 16px rgba(0,0,0,.04)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+    input,select,textarea{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff}
+    textarea{min-height:90px;resize:vertical}
+    .btn{background:var(--brand);color:#fff;border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .muted{color:var(--muted);font-size:12px}
+    pre{white-space:pre-wrap;word-wrap:break-word}
+    .result{min-height:140px;border:1px dashed #cbd5e1;border-radius:12px;padding:12px;background:#fff}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="top">
-      <div class="title">Go Travel（内嵌版）</div>
-      <a class="btn" href="https://davidmdox-gotravel-uipro.hf.space" target="_blank" rel="noopener">直接打开原站</a>
+    <div class="bar">
+      <div class="brand">Go Travel · 带你说走就走</div>
+      <div class="muted">PWA 版 · Vercel</div>
     </div>
-    <div class="hint">如果内嵌失败会自动显示原站按钮。</div>
-    <div class="main">
-      <!-- 关键：指向同域的 /app 由 Vercel 代理到 hf.space 并移除拦截头 -->
-      <iframe id="app" src="/app"></iframe>
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>出发地 / 目的地 / 城市列表（可中文）</label>
+          <input id="dest" placeholder="例：北京、成都、重庆 或 日本关西" />
+        </div>
+        <div>
+          <label>出行天数</label>
+          <input id="days" type="number" min="1" max="60" value="5" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>人均预算（货币自填）</label>
+          <input id="budget" placeholder="例：¥3000 / $500 / €700" />
+        </div>
+        <div>
+          <label>偏好（美食/自然/博物馆/亲子/小众…）</label>
+          <input id="prefs" placeholder="用逗号分隔，例：美食, 小众, 摄影" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>OpenAI API Key（仅本地使用，不上传）</label>
+          <input id="apiKey" placeholder="sk-..." />
+          <div class="muted">密钥只在你的浏览器内使用，建议用测试 Key。</div>
+        </div>
+        <div>
+          <label>模型（保持可选，默认 gpt-4o-mini）</label>
+          <input id="model" value="gpt-4o-mini" />
+          <div class="muted">后期可改，暂保持可选。</div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>额外要求（可选）</label>
+        <textarea id="notes" placeholder="例：适合老人和孩子、避免过度步行、每日控制预算…"></textarea>
+      </div>
+
+      <div class="actions" style="margin-top:12px">
+        <button class="btn" id="genBtn">生成行程</button>
+        <button class="btn" id="regenBtn" disabled>重新生成</button>
+        <button class="btn" id="copyBtn" disabled>复制</button>
+        <button class="btn" id="dlBtn" disabled>下载 Markdown</button>
+      </div>
+      <div class="muted" id="status" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card">
+      <label>行程结果</label>
+      <div id="result" class="result"><span class="muted">生成后显示在这里…</span></div>
     </div>
   </div>
-  <!-- 建议：先不要注册 SW，确保不受缓存影响；跑通后再启用 -->
+
+  <script src="/app.js?v=1"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js?v=1').catch(console.error);
+      });
+    }
+  </script>
 </body>
 </html>
